@@ -7,7 +7,7 @@ import skimage.measure
 from matplotlib import pyplot as plt
 from skimage.morphology import medial_axis
 import torch.nn.functional as F
-
+import  cv2 as cv2
 
 # Filter
 def circle(radius):
@@ -46,6 +46,7 @@ for i in range(circle_no):
     # print(stack_arr.shape)
 
 filter_data = np.swapaxes(stack_arr, 0, 2)
+filter_data = np.float32(filter_data)
 filter_data = torch.tensor(filter_data)
 # print(filter_data.shape)
 # 3d to 4d
@@ -60,21 +61,38 @@ blobs = im < .9 * im.mean()
 all_labels = skimage.measure.label(blobs)
 skel, distance = medial_axis(blobs, return_distance=True)
 dist_on_skel = distance * skel
-image_data = torch.tensor(dist_on_skel)
-# print(image_data.shape)
+norm_image = cv2.normalize(dist_on_skel, None, 0, 1,norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+image_data = torch.tensor(norm_image)
+print(image_data.shape)
 # 2d to 4d
 image_data = image_data.unsqueeze(0)
 image_data = image_data.unsqueeze(0)
 print(image_data.shape)
 
-final = F.conv2d(image_data, filter_data)
+
+kernel_size = (20, 20)
+padding = []
+for k in kernel_size:
+    if k%2==0:
+        pad = [(k-1)//2, (k-1)//2+1]
+    else:
+        pad = [(k-1)//2, (k-1)//2]
+    padding.extend(pad)
+
+x = F.pad(image_data, pad=padding)
+final = F.conv2d(x, filter_data)
 print(final.shape)
+print(final[0, 3, :].shape)
 plt.imshow(final[0, 3, :], cmap="gray")
 plt.show()
 
+
 # dice r iou performance matrix
-# def dice_loss(y_true, y_pred):
-#     numerator = 2 * K.sum(y_true * y_pred)
-#     denominator = K.sum(y_true) + K.sum(y_pred)
-#
-#     return 1 - (numerator + 1) / (denominator + 1)
+def dice_loss(image_real, final):
+    numerator = 2 * torch.sum(image_real * final)
+    denominator = torch.sum(image_real) + torch.sum(final)
+    return (numerator) / (denominator)
+
+
+loss = dice_loss(image_data, final[0, 1, :])
+print(loss)

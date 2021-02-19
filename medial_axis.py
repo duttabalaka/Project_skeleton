@@ -9,6 +9,7 @@ import cv2
 
 image = skimage.io.imread(fname='H02.jpg')
 image = rgb2gray(image)
+print(image.shape)
 im = skimage.filters.gaussian(image, sigma=1)
 blobs = im < .9 * im.mean()
 all_labels = skimage.measure.label(blobs)
