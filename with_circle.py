@@ -106,3 +106,4 @@ cv2.imshow("origin", image)
 cv2.waitKey(0)
 cv2.imshow("result", dist_on_skel)
 cv2.waitKey(0)
+
