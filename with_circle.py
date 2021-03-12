@@ -27,7 +27,7 @@ from scipy.ndimage.morphology import distance_transform_edt as distmap
 from skimage.segmentation import clear_border
 
 img = np.zeros([200, 200]);
-img = cv2.circle(img, center=(100, 100), radius=50, color=(255, 255, 255), thickness=20)
+img = cv2.render_circle(img, center=(100, 100), radius=50, color=(255, 255, 255), thickness=20)
 
 # with distance transform
 # cv2.imshow("img",img)
