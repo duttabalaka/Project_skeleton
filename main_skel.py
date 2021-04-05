@@ -34,6 +34,7 @@ def main():
     image_data = image_data.unsqueeze(0)
     filter_creation = create_circular_filter(no_circle=no_circle, min_radius=min_radius, max_radius=max_radius)
     after_filter = circular_filter(image_data, filter_creation, max_radius)
+    print("after_filter", after_filter)
     if show:
         im_show = torch.Tensor.numpy(after_filter[0, ith_circle, :])
         show_filter_image(im_show)
@@ -54,3 +55,7 @@ def show_filter_image(final_image):
 
 if __name__ == '__main__':
     main()
+
+
+
+# python3 main_skel.py --image_path /Users/balakadutta/PycharmProjects/Project_skeleton/H02.jpg --image_truth_path /Users/balakadutta/PycharmProjects/Project_skeleton/test.png --no_circle 7 --max_radius 7 --min_radius 1 --ith_circle 2 --show
