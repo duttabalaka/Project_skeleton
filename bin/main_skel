@@ -1,8 +1,8 @@
+#!/usr/bin/env python3
+
 import torch
 import cv2
-from image_processing import preprocess, binarize
-from performance import dice_coeff
-from filter import create_circular_filter, circular_filter, render_radial_skeleton
+from skeleton_stabilize import preprocess, binarize, dice_coeff, create_circular_filter, apply_circular_filter, render_radial_skeleton
 import argparse
 from matplotlib import pyplot as plt
 
@@ -12,6 +12,7 @@ def main():
     # Set the default for the dataset argument
     parser.add_argument("--image_path", type=str)
     parser.add_argument("--image_truth_path", type=str, default="")
+    parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--max_radius", type=int)
     parser.add_argument('--show', default='', action='store_true', dest='image_show', help='show result')
     parser.add_argument('--no_show', default='', action='store_false', dest='image_show', help='show result')
@@ -25,13 +26,13 @@ def main():
     image_input = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     radial_skeleton = preprocess(image_input)
 
-    image_data = torch.tensor(radial_skeleton)
+    image_data = torch.tensor(radial_skeleton, device=args.device)
     image_data = image_data.unsqueeze(0)
     image_data = image_data.unsqueeze(0)
 
-    filter = create_circular_filter(no_circle=no_circle, min_radius=0, max_radius=no_circle - 1)
-    channel_radii_images = circular_filter(torch.clamp(image_data, 0, 1), filter).cpu().numpy()
-    circle_bin = render_radial_skeleton(channel_radii_images, radial_skeleton, filter)
+    filter = create_circular_filter(no_circle=no_circle, min_radius=0, max_radius=no_circle - 1, device=args.device)
+    channel_radii_images = apply_circular_filter(torch.clamp(image_data, 0, 1), filter).cpu().numpy()
+    circle_bin = render_radial_skeleton(channel_radii_images, radial_skeleton, filter, device=args.device).cpu().numpy()
     fig, arr = plt.subplots(2, 3)
     gt_bin = cv2.imread(image_truth_path, cv2.IMREAD_GRAYSCALE) == 0
     otsu_bin = binarize(image_input)
@@ -45,13 +46,8 @@ def main():
         arr[1][1].imshow(channel_radii_images[0, -1, :, :])
         arr[0][2].imshow(otsu_bin != gt_bin)
         arr[1][2].imshow(circle_bin != gt_bin)
-
-        # print("After range:" ,channel_radii_images[0, ith_circle, :].cpu().numpy().max(),
-        #      channel_radii_images[0, ith_circle, :].cpu().numpy().min(), (channel_radii_images[0, ith_circle, :].cpu()>0).numpy().mean())
         plt.show()
 
 
 if __name__ == '__main__':
     main()
-
-# python3 main_skel.py --image_path /Users/balakadutta/PycharmProjects/Project_skeleton/H02.jpg --image_truth_path /Users/balakadutta/PycharmProjects/Project_skeleton/test.png --max_radius 7 --show
