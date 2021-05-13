@@ -1,4 +1,4 @@
-import cv2
+# import cv2
 import numpy as np
 
 
@@ -99,8 +99,8 @@ def binarize_img(img: np.array) -> np.array:
     img = postprocess_img(img)
     return img
 
-image = cv2.imread('/Users/balakadutta/PycharmProjects/Project_skeleton/H02.jpg', cv2.IMREAD_GRAYSCALE)
-# image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-image = binarize_img(image)
-cv2.imshow("binary", image)
-cv2.waitKey(0)
+# image = cv2.imread('/Users/balakadutta/PycharmProjects/Project_skeleton/H02.jpg', cv2.IMREAD_GRAYSCALE)
+# # image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+# image = binarize_img(image)
+# cv2.imshow("binary", image)
+# cv2.waitKey(0)

@@ -7,11 +7,12 @@ from matplotlib import pyplot as plt
 from skimage.morphology import medial_axis
 import cv2
 
-image = skimage.io.imread(fname='H02.jpg')
+image = skimage.io.imread(fname='delete.jpg')
 image = rgb2gray(image)
 print(image.shape)
 im = skimage.filters.gaussian(image, sigma=1)
 blobs = im < .9 * im.mean()
+print(blobs)
 all_labels = skimage.measure.label(blobs)
 print(all_labels)
 skel, distance = medial_axis(blobs, return_distance=True)

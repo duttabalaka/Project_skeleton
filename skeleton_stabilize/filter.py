@@ -42,7 +42,6 @@ def render_radial_skeleton(radii_stack, radial_skeleton, filter, device):
             :param: filter
             :return: sum of convolve image
         """
-    radii_stack, radial_skeleton = torch.tensor(radii_stack, device=device), torch.tensor(radial_skeleton, device=device)
     in_img = torch.zeros_like(radii_stack)
     for n in range(radii_stack.shape[1]):
         in_img[0, n, :, :] = (radial_skeleton == n)

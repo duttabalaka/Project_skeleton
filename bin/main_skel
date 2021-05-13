@@ -2,7 +2,8 @@
 
 import torch
 import cv2
-from skeleton_stabilize import preprocess, binarize, dice_coeff, create_circular_filter, apply_circular_filter, render_radial_skeleton
+from skeleton_stabilize import binarize, dice_coeff, create_circular_filter, apply_circular_filter, \
+    render_radial_skeleton, extract_radial_skeleton
 import argparse
 from matplotlib import pyplot as plt
 
@@ -24,25 +25,29 @@ def main():
     show = args.image_show
 
     image_input = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    radial_skeleton = preprocess(image_input)
 
-    image_data = torch.tensor(radial_skeleton, device=args.device)
-    image_data = image_data.unsqueeze(0)
-    image_data = image_data.unsqueeze(0)
+    image_data = torch.tensor(image_input, device=args.device)
+
+    radial_skeleton = extract_radial_skeleton(image_data)
+    radial_skeleton = radial_skeleton.unsqueeze(0)
+    radial_skeleton = radial_skeleton.unsqueeze(0)
 
     filter = create_circular_filter(no_circle=no_circle, min_radius=0, max_radius=no_circle - 1, device=args.device)
-    channel_radii_images = apply_circular_filter(torch.clamp(image_data, 0, 1), filter).cpu().numpy()
-    circle_bin = render_radial_skeleton(channel_radii_images, radial_skeleton, filter, device=args.device).cpu().numpy()
+    channel_radii_images = apply_circular_filter(torch.clamp(radial_skeleton, 0, 1), filter)
+    circle_bin = render_radial_skeleton(channel_radii_images, radial_skeleton, filter, device=args.device)
+
     fig, arr = plt.subplots(2, 3)
     gt_bin = cv2.imread(image_truth_path, cv2.IMREAD_GRAYSCALE) == 0
-    otsu_bin = binarize(image_input)
+    otsu_bin = binarize(image_input, method="otsu")
+    gt_bin = torch.tensor(gt_bin, device=args.device)
+    otsu_bin = torch.tensor(otsu_bin, device=args.device)
     print("Otsu Dice Score:", dice_coeff(gt_bin, otsu_bin))
     print("Circle Dice Score:", dice_coeff(gt_bin, circle_bin))
 
     if show:
         arr[0][0].imshow(otsu_bin)
         arr[1][0].imshow(circle_bin)
-        arr[0][1].imshow(radial_skeleton)
+        arr[0][1].imshow(image_data)
         arr[1][1].imshow(channel_radii_images[0, -1, :, :])
         arr[0][2].imshow(otsu_bin != gt_bin)
         arr[1][2].imshow(circle_bin != gt_bin)
