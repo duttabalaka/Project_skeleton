@@ -33,7 +33,7 @@ def main():
     radial_skeleton = radial_skeleton.unsqueeze(0)
 
     filter = create_circular_filter(no_circle=no_circle, min_radius=0, max_radius=no_circle - 1, device=args.device)
-    channel_radii_images = apply_circular_filter(torch.clamp(radial_skeleton, 0, 1), filter)
+    channel_radii_images = apply_circular_filter(radial_skeleton, filter)
     circle_bin = render_radial_skeleton(channel_radii_images, radial_skeleton, filter, device=args.device)
 
     fig, arr = plt.subplots(2, 3)
